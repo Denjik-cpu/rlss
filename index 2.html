@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Real Life: Special System</title>
+  <style>
+    :root {
+      --bg: #0b0c0f;
+      --panel: #1a1d24;
+      --accent: #00ff41;
+      --text: #ffffff;
+      --danger: #ff3333;
+      --frost: #55ccff;
+    }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Courier New', Courier, monospace;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+    header {
+      text-align: center;
+      padding: 10px;
+      border-bottom: 1px solid var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      flex-wrap: wrap;
+    }
+    button {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 8px 14px;
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 0.9em;
+      transition: all 0.2s;
+    }
+    button:active {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    .date-display {
+      text-align: center;
+      color: #888;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .token-display {
+      text-align: center;
+      color: var(--frost);
+      margin: 6px 0;
+      font-size: 0.95em;
+    }
+    .streak-display {
+      text-align: center;
+      color: var(--accent);
+      margin: 6px 0;
+      font-size: 0.95em;
+    }
+    .counter-box {
+      margin: 10px;
+      padding: 10px;
+      border: 1px dashed #555;
+      border-radius: 4px;
+      text-align: center;
+      line-height: 1.7;
+      font-size: 0.95em;
+      color: #ccc;
+    }
+    .counter-box .big {
+      font-size: 1.4em;
+      color: var(--accent);
+      font-weight: bold;
+    }
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--accent);
+      margin: 10px;
+      padding: 15px;
+      border-radius: 4px;
+    }
+    .stat-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 1.1em;
+    }
+    .progress-bar-bg {
+      height: 10px;
+      background: #2a2e38;
+      border: 1px solid #444;
+      margin-bottom: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    .stat-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .section-title {
+      text-align: center;
+      color: var(--accent);
+      margin: 15px 0 5px;
+      letter-spacing: 1px;
+    }
+    .add-task-box {
+      margin: 10px;
+      padding: 10px;
+      border: 1px dashed #555;
+      border-radius: 4px;
+    }
+    .add-task-box input[type=text] {
+      width: 100%;
+      box-sizing: border-box;
+      background: #111;
+      border: 1px solid #444;
+      color: var(--text);
+      font-family: inherit;
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+    .add-task-box select {
+      background: #111;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-family: inherit;
+      padding: 8px;
+      margin-bottom: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .task-item {
+      background: #111;
+      border: 1px solid #333;
+      padding: 10px;
+      margin: 8px 10px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+    .task-item .task-cat {
+      color: var(--accent);
+      font-size: 0.8em;
+      white-space: nowrap;
+    }
+    .task-item.completed {
+      background: #1a2a1a;
+      border-color: var(--accent);
+      color: var(--accent);
+      text-decoration: line-through;
+    }
+    .task-item .del-btn {
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 2px 8px;
+      font-size: 0.85em;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .rules {
+      padding: 15px;
+      color: #aaa;
+      line-height: 1.5;
+    }
+    .log-entry {
+      border-bottom: 1px dashed #333;
+      padding: 6px 0;
+      font-size: 0.85em;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <header>REAL LIFE: SPECIAL SYSTEM</header>
+
+  <div class="controls">
+    <button onclick="switchTab('stats')">СТАТЫ</button>
+    <button onclick="switchTab('tasks')">ЗАДАНИЯ</button>
+    <button onclick="switchTab('rules')">ПРАВИЛА</button>
+    <button onclick="switchTab('log')">ЖУРНАЛ</button>
+  </div>
+
+  <div id="stats-view">
+    <div class="date-display" id="current-date">Загрузка даты...</div>
+    <div class="token-display" id="token-display"></div>
+    <div class="streak-display" id="streak-display"></div>
+    <div class="counter-box" id="counter-box"></div>
+    <div id="stats-container"></div>
+  </div>
+
+  <div id="tasks-view" class="hidden">
+    <div class="section-title">ЕЖЕДНЕВНЫЕ (РАНДОМ)</div>
+    <div style="text-align:center;">
+      <button style="border-color: var(--danger); color: var(--danger);" onclick="generateDailyTasks()">СМЕНИТЬ ЗАДАНИЯ (РЕРОЛЛ)</button>
+    </div>
+    <div id="tasks-container"></div>
+
+    <div class="section-title">МОИ ЗАДАНИЯ</div>
+    <div class="add-task-box">
+      <input type="text" id="new-task-text" placeholder="Что нужно сделать?">
+      <select id="new-task-cat">
+        <option value="krasnorechie">КРАСНОРЕЧИЕ</option>
+        <option value="sila">СИЛА</option>
+        <option value="intellekt">ИНТЕЛЛЕКТ</option>
+        <option value="netrener">НЕТРАНЕР</option>
+      </select>
+      <button onclick="addCustomTask()">ДОБАВИТЬ ЗАДАНИЕ</button>
+    </div>
+    <div id="custom-tasks-container"></div>
+  </div>
+
+  <div id="rules-view" class="hidden">
+    <div class="rules">
+      <h3>СИСТЕМА ПРОКАЧКИ</h3>
+      <p>1. Каждый стат имеет лимит 100 очков.</p>
+      <p>2. Ежедневные задания берутся рандомно и меняются каждый день (или по кнопке реролла).</p>
+      <p>3. Свои задания висят в списке, пока не удалишь, и не попадают в рандом. При создании выбираешь категорию.</p>
+      <p>4. Ручной подъём очков требует объяснения — оно сохраняется в Журнале. Выполненные задания (рандомные и свои) тоже пишутся в Журнал.</p>
+      <p>5. Чистый день — это день, когда все 4 стата получили хотя бы по одному очку (любым способом).</p>
+      <p>6. Пропущенный день (трекер не открывался) — штраф −1 по всем статам. Но если есть жетон заморозки ❄, день замораживается вместо штрафа.</p>
+      <p>7. Награда: неделя из 7 чистых дней подряд — +1 жетон заморозки. Максимум в запасе — 3.</p>
+      <p>8. Счётчики: день в игре, всего чистых дней, текущая серия чистых дней — на вкладке «Статы».</p>
+      <p>9. Прогресс сохраняется в памяти браузера. Для работы как приложения: «Поделиться» → «На экран „Домой“» в Safari.</p>
+    </div>
+  </div>
+
+  <div id="log-view" class="hidden">
+    <div class="section-title">ЖУРНАЛ ПОДЪЁМОВ ОЧКОВ</div>
+    <div id="log-container"></div>
+    <div style="text-align:center; margin:15px;">
+      <button style="border-color: var(--danger); color: var(--danger);" onclick="clearLog()">ОЧИСТИТЬ ЖУРНАЛ</button>
+    </div>
+  </div>
+
+  <script>
+    const statsData = {
+      krasnorechie: { name: 'КРАСНОРЕЧИЕ', val: 1 },
+      sila:         { name: 'СИЛА',         val: 1 },
+      intellekt:    { name: 'ИНТЕЛЛЕКТ',    val: 1 },
+      netrener:     { name: 'НЕТРАНЕР',     val: 1 }
+    };
+
+    const tasksPool = {
+      krasnorechie: [
+        "Позвони родственнику или другу просто поболтать 5 минут",
+        "Сделай комплимент незнакомцу (вежливо и по делу)",
+        "Попробуй договориться о скидке или улучшении условия",
+        "Прочитай вслух абзац из книги с выражением",
+        "Запиши голосовое сообщение на 1 минуту без пауз и слов-паразитов"
+      ],
+      sila: [
+        "Сделай 20 приседаний или планку на 1 минуту",
+        "Поднимись по лестнице вместо лифта",
+        "Уберись в одной комнате за 15 минут",
+        "Пройди 5000 шагов сегодня",
+        "Прогулка быстрым шагом 20 минут"
+      ],
+      intellekt: [
+        "Реши одну задачу на логику или математику",
+        "Прочитай 10 страниц сложной (не художественной) книги",
+        "Изучи одно новое слово и используй его в речи 3 раза",
+        "Выучи 5 английских слов и составь с ними предложения",
+        "Посмотри 10-минутное обучающее видео и перескажи суть"
+      ],
+      netrener: [
+        "Разбери папку «Загрузки» и удали всё лишнее",
+        "Настрой один авто-платёж или напоминание",
+        "Отсортируй фото на телефоне за 10 минут",
+        "Создай шаблон для повторяющейся задачи",
+        "Наведи порядок в одном рабочем чате или почте"
+      ]
+    };
+
+    const statsKey = 'rlss_stats';
+    const tasksKey = 'rlss_daily_tasks_v2';
+    const lastOpenKey = 'rlss_last_open_date';
+    const completedKey = 'rlss_completed_today';
+    const customKey = 'rlss_custom_tasks';
+    const customDoneKey = 'rlss_custom_done';
+    const tokensKey = 'rlss_freeze_tokens';
+    const daysKey = 'rlss_days_record';
+    const rewardKey = 'rlss_last_reward_week';
+    const startKey = 'rlss_start_date';
+    const logKey = 'rlss_log';
+
+    const MAX_TOKENS = 3;
+
+    let dailyTasks = {};
+    let completedToday = {};
+    let customTasks = [];
+    let customDone = {};
+    let freezeTokens = 1;
+    let daysRecord = {};
+
+    function todayStr() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function shiftDate(dateStr, days) {
+      const d = new Date(dateStr + 'T00:00:00');
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split('T')[0];
+    }
+
+    function saveStats() {
+      localStorage.setItem(statsKey, JSON.stringify(statsData));
+    }
+
+    function loadStats() {
+      const saved = localStorage.getItem(statsKey);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        Object.keys(parsed).forEach(function(k) {
+          if (statsData[k] && typeof parsed[k].val === 'number') {
+            statsData[k].val = parsed[k].val;
+          }
+        });
+      }
+    }
+
+    function ensureDay(dateStr) {
+      if (!daysRecord[dateStr]) {
+        daysRecord[dateStr] = {};
+      }
+      return daysRecord[dateStr];
+    }
+
+    function markPoint(key) {
+      const rec = ensureDay(todayStr());
+      rec[key] = (rec[key] || 0) + 1;
+      saveDays();
+    }
+
+    function saveDays() {
+      localStorage.setItem(daysKey, JSON.stringify(daysRecord));
+    }
+
+    function loadDays() {
+      const saved = localStorage.getItem(daysKey);
+      daysRecord = saved ? JSON.parse(saved) : {};
+    }
+
+    function isCleanDay(dateStr) {
+      const rec = daysRecord[dateStr];
+      if (!rec) return false;
+      return Object.keys(statsData).every(function(k) {
+        return (rec[k] || 0) > 0;
+      });
+    }
+
+    function loadTokens() {
+      const t = localStorage.getItem(tokensKey);
+      freezeTokens = t === null ? 1 : parseInt(t, 10);
+    }
+
+    function saveTokens() {
+      localStorage.setItem(tokensKey, String(freezeTokens));
+    }
+
+    function getStartDay() {
+      let start = localStorage.getItem(startKey);
+      if (!start) {
+        start = todayStr();
+        localStorage.setItem(startKey, start);
+      }
+      return start;
+    }
+
+    function daysInGame() {
+      const start = getStartDay();
+      const today = todayStr();
+      const diff = Math.floor((new Date(today) - new Date(start)) / 86400000);
+      return diff + 1;
+    }
+
+    function totalCleanDays() {
+      let count = 0;
+      Object.keys(daysRecord).forEach(function(d) {
+        if (isCleanDay(d)) count++;
+      });
+      return count;
+    }
+
+    function currentStreak() {
+      let streak = 0;
+      let cursor = todayStr();
+      for (let i = 0; i < 365; i++) {
+        if (isCleanDay(cursor)) {
+          streak++;
+          cursor = shiftDate(cursor, -1);
+        } else {
+          break;
+        }
+      }
+      return streak;
+    }
+
+    function applyDailyPenalty() {
+      const lastOpen = localStorage.getItem(lastOpenKey);
+      const today = todayStr();
+      if (lastOpen && lastOpen !== today) {
+        let diff = 0;
+        let cursor = lastOpen;
+        while (cursor < today && diff < 365) {
+          cursor = shiftDate(cursor, 1);
+          diff++;
+        }
+        for (let i = 0; i < diff; i++) {
+          const missedDate = shiftDate(lastOpen, i + 1);
+          if (freezeTokens > 0) {
+            freezeTokens--;
+            ensureDay(missedDate).frozen = true;
+          } else {
+            Object.keys(statsData).forEach(function(k) {
+              statsData[k].val = Math.max(0, statsData[k].val - 1);
+            });
+            ensureDay(missedDate).penalized = true;
+          }
+        }
+        saveStats();
+        saveTokens();
+        saveDays();
+        if (diff > 0) {
+          alert('Пропущено дней: ' + diff + '. Штраф −' + diff + ' по всем статам (или жетоны заморозки, если были).');
+        }
+        generateDailyTasks();
+      }
+      localStorage.setItem(lastOpenKey, today);
+    }
+
+    function mondayOf(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      const day = (d.getDay() + 6) % 7;
+      d.setDate(d.getDate() - day);
+      return d.toISOString().split('T')[0];
+    }
+
+    function checkWeeklyReward() {
+      const today = todayStr();
+      const prevMonday = shiftDate(mondayOf(today), -7);
+      const already = localStorage.getItem(rewardKey);
+      if (already === prevMonday) return;
+      let allClean = true;
+      for (let i = 0; i < 7; i++) {
+        if (!isCleanDay(shiftDate(prevMonday, i))) {
+          allClean = false;
+          break;
+        }
+      }
+      if (allClean) {
+        freezeTokens = Math.min(MAX_TOKENS, freezeTokens + 1);
+        saveTokens();
+        localStorage.setItem(rewardKey, prevMonday);
+        alert('🎉 ИДЕАЛЬНАЯ НЕДЕЛЯ! Все 7 дней чистые — получен жетон заморозки! ❄');
+        addLog('СИСТЕМА: идеальная неделя ' + prevMonday + ' — ' + shiftDate(prevMonday, 6) + '. Награда: +1 жетон заморозки.');
+      }
+    }
+
+    function generateDailyTasks() {
+      dailyTasks = {};
+      Object.keys(tasksPool).forEach(function(k) {
+        const idx = Math.floor(Math.random() * tasksPool[k].length);
+        dailyTasks[k] = tasksPool[k][idx];
+      });
+      completedToday = {};
+      localStorage.setItem(tasksKey, JSON.stringify(dailyTasks));
+      localStorage.setItem(completedKey, '{}');
+      renderTasks();
+    }
+
+    function loadDailyTasks() {
+      const saved = localStorage.getItem(tasksKey);
+      if (saved) {
+        dailyTasks = JSON.parse(saved);
+      } else {
+        generateDailyTasks();
+      }
+      const savedDone = localStorage.getItem(completedKey);
+      completedToday = savedDone ? JSON.parse(savedDone) : {};
+      const savedCustom = localStorage.getItem(customKey);
+      customTasks = savedCustom ? JSON.parse(savedCustom) : [];
+      const savedCustomDone = localStorage.getItem(customDoneKey);
+      customDone = savedCustomDone ? JSON.parse(savedCustomDone) : {};
+    }
+
+    function renderStats() {
+      const container = document.getElementById('stats-container');
+      let html = '';
+      Object.keys(statsData).forEach(function(k) {
+        const s = statsData[k];
+        html += '<div class="stat-card">';
+        html += '<div class="stat-header"><span>' + s.name + '</span><span>' + s.val + ' / 100</span></div>';
+        html += '<div class="progress-bar-bg"><div class="progress-bar-fill" style="width:' + s.val + '%"></div></div>';
+        html += '<div class="stat-actions">';
+        html += '<button onclick="askPoint(\'' + k + '\', 1)">+1 ОЧКО</button>';
+        html += '<button onclick="askPoint(\'' + k + '\', 1)">+</button>';
+        html += '<button onclick="askPoint(\'' + k + '\', -1)">−</button>';
+        html += '</div></div>';
+      });
+      container.innerHTML = html;
+      document.getElementById('token-display').textContent = '❄ Жетоны заморозки: ' + freezeTokens + ' / ' + MAX_TOKENS;
+      let cleanWeek = 0;
+      const monday = mondayOf(todayStr());
+      for (let i = 0; i < 7; i++) {
+        if (isCleanDay(shiftDate(monday, i))) cleanWeek++;
+      }
+      document.getElementById('streak-display').textContent = '★ Чистых дней на этой неделе: ' + cleanWeek + ' из 7 (нужны все 7 — и жетон твой)';
+      renderCounters();
+    }
+
+    function renderCounters() {
+      const box = document.getElementById('counter-box');
+      const inGame = daysInGame();
+      const totalClean = totalCleanDays();
+      const streak = currentStreak();
+      const recKey = 'rlss_streak_record';
+      let record = parseInt(localStorage.getItem(recKey) || '0', 10);
+      if (streak > record) {
+        record = streak;
+        localStorage.setItem(recKey, String(record));
+      }
+      let html = '<div class="big">День в игре: ' + inGame + '</div>';
+      html += 'Старт пути: ' + getStartDay().split('-').reverse().join('.');
+      html += '<br>Чистых дней всего: ' + totalClean;
+      html += '<br>Серия чистых дней: ' + streak + (streak > 0 ? ' 🔥' : '') + ' (рекорд: ' + record + ')';
+      box.innerHTML = html;
+    }
+
+    function askPoint(key, delta) {
+      const s = statsData[key];
+      const direction = delta > 0 ? 'поднимаешь' : 'снижаешь';
+      const explanation = prompt('За что ты ' + direction + ' очко «' + s.name + '?', '');
+      if (explanation === null) return;
+      if (explanation.trim() === '') {
+        alert('Без объяснения очко не начисляется. Таковы правила пустошей.');
+        return;
+      }
+      const newVal = s.val + delta;
+      if (newVal >= 0 && newVal <= 100) {
+        s.val = newVal;
+        saveStats();
+        if (delta > 0) markPoint(key);
+        addLog(s.name + ': ' + (delta > 0 ? '+1' : '−1') + ' — ' + explanation.trim());
+        renderStats();
+      } else {
+        alert('Предел шкалы: очко не может выйти за границы 0–100.');
+      }
+    }
+
+    function addLog(entry) {
+      const saved = localStorage.getItem(logKey);
+      const log = saved ? JSON.parse(saved) : [];
+      const now = new Date();
+      const stamp = now.toLocaleDateString('ru-RU') + ' ' + now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      log.unshift('[' + stamp + '] ' + entry);
+      localStorage.setItem(logKey, JSON.stringify(log));
+      renderLog();
+    }
+
+    function renderLog() {
+      const container = document.getElementById('log-container');
+      const saved = localStorage.getItem(logKey);
+      const log = saved ? JSON.parse(saved) : [];
+      if (log.length === 0) {
+        container.innerHTML = '<div class="rules">Журнал пуст. Очки, поднятые вручную, будут фиксироваться здесь с объяснением.</div>';
+        return;
+      }
+      let html = '';
+      log.forEach(function(line) {
+        html += '<div class="log-entry">' + line + '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function clearLog() {
+      if (confirm('Очистить журнал подтверждений?')) {
+        localStorage.setItem(logKey, '[]');
+        renderLog();
+      }
+    }
+
+    function addCustomTask() {
+      const input = document.getElementById('new-task-text');
+      const cat = document.getElementById('new-task-cat').value;
+      const text = input.value.trim();
+      if (text === '') {
+        alert('Сначала напиши, что нужно сделать.');
+        return;
+      }
+      customTasks.push({ text: text, cat: cat });
+      localStorage.setItem(customKey, JSON.stringify(customTasks));
+      input.value = '';
+      renderCustomTasks();
+    }
+
+    function deleteCustomTask(idx) {
+      if (!confirm('Удалить это задание?')) return;
+      customTasks.splice(idx, 1);
+      localStorage.setItem(customKey, JSON.stringify(customTasks));
+      renderCustomTasks();
+    }
+
+    function completeCustomTask(idx) {
+      if (customDone[idx]) return;
+      customDone[idx] = true;
+      localStorage.setItem(customDoneKey, JSON.stringify(customDone));
+      const cat = customTasks[idx].cat;
+      if (statsData[cat].val < 100) {
+        statsData[cat].val++;
+        saveStats();
+        markPoint(cat);
+        addLog(statsData[cat].name + ': +1 — своё задание: ' + customTasks[idx].text);
+      }
+      renderCustomTasks();
+      renderStats();
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('tasks-container');
+      let html = '';
+      Object.keys(dailyTasks).forEach(function(k) {
+        const isDone = completedToday[k] === true;
+        const cls = isDone ? 'task-item completed' : 'task-item';
+        html += '<div class="' + cls + '" onclick="completeDaily(\'' + k + '\')">';
+        html += '<span>' + dailyTasks[k] + '</span>';
+        html += '<span class="task-cat">' + statsData[k].name + '</span>';
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function completeDaily(key) {
+      if (completedToday[key]) return;
+      completedToday[key] = true;
+      localStorage.setItem(completedKey, JSON.stringify(completedToday));
+      if (statsData[key].val < 100) {
+        statsData[key].val++;
+        saveStats();
+        markPoint(key);
+        addLog(statsData[key].name + ': +1 — ежедневное задание: ' + dailyTasks[key]);
+        renderStats();
+      }
+      renderTasks();
+    }
+
+    function renderCustomTasks() {
+      const container = document.getElementById('custom-tasks-container');
+      if (customTasks.length === 0) {
+        container.innerHTML = '<div class="rules">Пока пусто. Добавь свои дела выше — они не уйдут в рандом и будут висеть, пока не удалишь.</div>';
+        return;
+      }
+      let html = '';
+      customTasks.forEach(function(t, idx) {
+        const isDone = customDone[idx] === true;
+        const cls = isDone ? 'task-item completed' : 'task-item';
+        html += '<div class="' + cls + '" onclick="completeCustomTask(' + idx + ')">';
+        html += '<span>' + t.text + '</span>';
+        html += '<span class="task-cat">' + statsData[t.cat].name + '</span>';
+        if (!isDone) {
+          html += '<span class="del-btn" onclick="event.stopPropagation(); deleteCustomTask(' + idx + ')">×</span>';
+        }
+        html += '</div>';
+      });
+      container.innerHTML = html;
+    }
+
+    function switchTab(tab) {
+      document.getElementById('stats-view').classList.toggle('hidden', tab !== 'stats');
+      document.getElementById('tasks-view').classList.toggle('hidden', tab !== 'tasks');
+      document.getElementById('rules-view').classList.toggle('hidden', tab !== 'rules');
+      document.getElementById('log-view').classList.toggle('hidden', tab !== 'log');
+    }
+
+    function init() {
+      loadStats();
+      loadTokens();
+      loadDays();
+      loadDailyTasks();
+      applyDailyPenalty();
+      checkWeeklyReward();
+      renderStats();
+      renderTasks();
+      renderCustomTasks();
+      renderLog();
+      const d = new Date();
+      const options = { year: 'numeric', month: 'short', day: 'numeric', weekday: 'long' };
+      document.getElementById('current-date').textContent = 'Сегодня: ' + d.toLocaleDateString('ru-RU', options);
+    }
+
+    init();
+  </script>
+</body>
+</html>
